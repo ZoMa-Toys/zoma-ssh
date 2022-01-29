@@ -1,0 +1,42 @@
+name: 'SSH with cmd'
+description: 'Connect to host with ssh and execute cmd'
+inputs:
+  host:
+    description: 'hostname or IP of the remote system'
+    required: true
+    default: "localhost"
+  user:
+    description: 'username to connect to the remote host'
+    required: true
+    default: "git"
+  key:
+    description: 'private key'
+    required: true
+    default: "notthisone"
+  cmd:
+    description: 'command to be executed'
+    required: false
+    default: ""
+outputs:
+  cmd_output:
+    description: 'cmd output'
+    value: ${{ steps.run-script.outputs.cmd_output }}
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up SSH
+      run: |
+        mkdir -p ~/.ssh/
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        sudo chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -H $HOST > ~/.ssh/known_hosts
+      shell: bash
+      env:
+        SSH_PRIVATE_KEY: ${{ inputs.key }}
+        HOST: ${{ inputs.host }}
+    - name: Execute cmd
+      id: run-script
+      if: ${{ inputs.cmd }} != ""
+      run: |
+        ssh ${{ inputs.user }}@${{ inputs.host }} 'CMD="${{ inputs.cmd }}" && OUT=`$CMD` &&  echo "::set-output name=cmd_output::\"$OUT\"" > GHTEST && echo "::set-output name=cmd_output::\"$OUT\""'
+      shell: bash
