@@ -38,5 +38,5 @@ runs:
       id: run-script
       if: ${{ inputs.cmd }} != ""
       run: |
-        ssh ${{ inputs.user }}@${{ inputs.host }} 'CMD="${{ inputs.cmd }}" && OUT=`$CMD` && echo "::set-output name=cmd_output::$OUT"'
+        ssh ${{ inputs.user }}@${{ inputs.host }} 'CMD="${{ inputs.cmd }}" && OUT=$(eval $CMD) && echo "::set-output name=cmd_output::$OUT"'
       shell: bash
